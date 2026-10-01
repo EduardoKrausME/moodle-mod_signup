@@ -22,6 +22,10 @@
  * @license   http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
+use core\output\notification;
+use mod_signup\form\team_settings_form;
+use mod_signup\signup_manager;
+
 require_once(__DIR__ . "/../../config.php");
 
 $id = required_param("id", PARAM_INT);
@@ -39,9 +43,9 @@ $member = $DB->get_record("signup_members", [
     "signupid" => $signup->id,
     "groupid" => $group->id,
     "userid" => $USER->id,
-    "status" => \mod_signup\signup_manager::STATUS_CONFIRMED,
+    "status" => signup_manager::STATUS_CONFIRMED,
 ]);
-if (!$member || \mod_signup\signup_manager::get_group_controller((int) $group->id) !== (int) $USER->id) {
+if (!$member || signup_manager::get_group_controller((int)$group->id) !== (int)$USER->id) {
     throw new moodle_exception("teamsettingsnotallowed", "mod_signup");
 }
 
@@ -52,10 +56,10 @@ $sql = "SELECT u.id, u.firstname, u.lastname, u.firstnamephonetic, u.lastnamepho
       ORDER BY u.lastname, u.firstname";
 $members = $DB->get_records_sql($sql, [
     "groupid" => $group->id,
-    "status" => \mod_signup\signup_manager::STATUS_CONFIRMED,
+    "status" => signup_manager::STATUS_CONFIRMED,
 ]);
 
-$form = new \mod_signup\form\team_settings_form(null, [
+$form = new team_settings_form(null, [
     "group" => $group,
     "members" => $members,
     "cmid" => $cm->id,
@@ -66,9 +70,9 @@ if ($form->is_cancelled()) {
 }
 if ($data = $form->get_data()) {
     $name = !empty($group->allowrename) ? $data->groupname : $group->name;
-    $leaderid = !empty($group->allowleader) ? (int) $data->leaderid : (int) $group->leaderid;
-    \mod_signup\signup_manager::save_team_settings($group, $USER->id, $name, $leaderid);
-    redirect($returnurl, get_string("teamsettingssaved", "mod_signup"), null, \core\output\notification::NOTIFY_SUCCESS);
+    $leaderid = !empty($group->allowleader) ? (int)$data->leaderid : (int)$group->leaderid;
+    signup_manager::save_team_settings($group, $USER->id, $name, $leaderid);
+    redirect($returnurl, get_string("teamsettingssaved", "mod_signup"), null, notification::NOTIFY_SUCCESS);
 }
 
 $PAGE->set_url(new moodle_url("/mod/signup/team_settings.php", ["id" => $cm->id, "groupid" => $group->id]));
@@ -78,6 +82,6 @@ $PAGE->set_context($context);
 
 echo $OUTPUT->header();
 echo $OUTPUT->heading(format_string($group->name));
-echo $OUTPUT->notification(get_string("firstmembercontrols", "mod_signup"), \core\output\notification::NOTIFY_INFO);
+echo $OUTPUT->notification(get_string("firstmembercontrols", "mod_signup"), notification::NOTIFY_INFO);
 $form->display();
 echo $OUTPUT->footer();

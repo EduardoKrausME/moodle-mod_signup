@@ -24,14 +24,16 @@
 
 namespace mod_signup\form;
 
-defined('MOODLE_INTERNAL') || die();
+use moodleform;
+
+defined('MOODLE_INTERNAL') || die;
 
 require_once($CFG->libdir . "/formslib.php");
 
 /**
  * Class team_settings_form.
  */
-class team_settings_form extends \moodleform {
+class team_settings_form extends moodleform {
     /**
      * Method definition.
      *
@@ -55,7 +57,7 @@ class team_settings_form extends \moodleform {
                 $options[$member->id] = fullname($member);
             }
             $mform->addElement("select", "leaderid", get_string("chooseleader", "mod_signup"), $options);
-            $mform->setDefault("leaderid", (int) $group->leaderid);
+            $mform->setDefault("leaderid", (int)$group->leaderid);
         }
 
         $mform->addElement("hidden", "id", $this->_customdata["cmid"]);

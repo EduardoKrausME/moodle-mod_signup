@@ -47,13 +47,13 @@ class group_generator {
 
         for ($index = 0; $index < $count; $index++) {
             $suffix = self::alpha_label($index);
-            $record = (object) [
+            $record = (object)[
                 "signupid" => $signupid,
                 "sortorder" => $index + 1,
                 "name" => get_string("groupdefaultname", "mod_signup", $suffix),
                 "capacity" => $capacity,
-                "allowrename" => (int) $allowrename,
-                "allowleader" => (int) $allowleader,
+                "allowrename" => (int)$allowrename,
+                "allowleader" => (int)$allowleader,
                 "customname" => 0,
                 "leaderid" => 0,
                 "timecreated" => $now,

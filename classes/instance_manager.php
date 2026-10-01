@@ -44,8 +44,8 @@ class instance_manager {
 
         group_generator::create(
             $id,
-            (int) ($data->groupcount ?? 1),
-            (int) ($data->defaultcapacity ?? 1),
+            (int)($data->groupcount ?? 1),
+            (int)($data->defaultcapacity ?? 1),
             !empty($data->defaultallowrename),
             !empty($data->defaultallowleader)
         );
@@ -63,15 +63,15 @@ class instance_manager {
     public static function update(object $data): bool {
         global $DB;
 
-        $existing = $DB->get_record("signup", ["id" => (int) $data->instance], "*", MUST_EXIST);
+        $existing = $DB->get_record("signup", ["id" => (int)$data->instance], "*", MUST_EXIST);
         $record = self::build_record($data);
         if (!property_exists($data, "defaultallowrename")) {
-            $record->defaultallowrename = (int) $existing->defaultallowrename;
+            $record->defaultallowrename = (int)$existing->defaultallowrename;
         }
         if (!property_exists($data, "defaultallowleader")) {
-            $record->defaultallowleader = (int) $existing->defaultallowleader;
+            $record->defaultallowleader = (int)$existing->defaultallowleader;
         }
-        $record->id = (int) $data->instance;
+        $record->id = (int)$data->instance;
         $record->timemodified = time();
         return $DB->update_record("signup", $record);
     }
@@ -104,17 +104,17 @@ class instance_manager {
      * @return object Return value.
      */
     private static function build_record(object $data): object {
-        return (object) [
-            "course" => (int) $data->course,
+        return (object)[
+            "course" => (int)$data->course,
             "name" => $data->name,
             "intro" => $data->intro ?? "",
-            "introformat" => (int) ($data->introformat ?? FORMAT_HTML),
+            "introformat" => (int)($data->introformat ?? FORMAT_HTML),
             "waitlist" => !empty($data->waitlist) ? 1 : 0,
             "allowchanges" => !empty($data->allowchanges) ? 1 : 0,
             "defaultallowrename" => !empty($data->defaultallowrename) ? 1 : 0,
             "defaultallowleader" => !empty($data->defaultallowleader) ? 1 : 0,
-            "timeopen" => !empty($data->timeopen) ? (int) $data->timeopen : 0,
-            "timeclose" => !empty($data->timeclose) ? (int) $data->timeclose : 0,
+            "timeopen" => !empty($data->timeopen) ? (int)$data->timeopen : 0,
+            "timeclose" => !empty($data->timeclose) ? (int)$data->timeclose : 0,
         ];
     }
 }

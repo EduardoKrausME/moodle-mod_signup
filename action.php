@@ -22,6 +22,9 @@
  * @license   http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
+use core\output\notification;
+use mod_signup\signup_manager;
+
 require_once(__DIR__ . "/../../config.php");
 
 $id = required_param("id", PARAM_INT);
@@ -39,14 +42,14 @@ require_capability("mod/signup:signup", $context);
 $returnurl = new moodle_url("/mod/signup/view.php", ["id" => $cm->id]);
 
 if ($action === "join") {
-    $status = \mod_signup\signup_manager::choose($signup, $groupid, $USER->id);
-    $message = $status === \mod_signup\signup_manager::STATUS_CONFIRMED ?
+    $status = signup_manager::choose($signup, $groupid, $USER->id);
+    $message = $status === signup_manager::STATUS_CONFIRMED ?
         get_string("signupsaved", "mod_signup") : get_string("waitlistsaved", "mod_signup");
-    redirect($returnurl, $message, null, \core\output\notification::NOTIFY_SUCCESS);
+    redirect($returnurl, $message, null, notification::NOTIFY_SUCCESS);
 }
 if ($action === "leave") {
-    \mod_signup\signup_manager::leave($signup, $USER->id);
-    redirect($returnurl, get_string("signupleft", "mod_signup"), null, \core\output\notification::NOTIFY_SUCCESS);
+    signup_manager::leave($signup, $USER->id);
+    redirect($returnurl, get_string("signupleft", "mod_signup"), null, notification::NOTIFY_SUCCESS);
 }
 
 throw new moodle_exception("invalidaction");

@@ -24,6 +24,8 @@
 
 namespace mod_signup;
 
+use cm_info;
+use context_module;
 use moodle_url;
 
 /**
@@ -34,12 +36,12 @@ class view_builder {
      * Method build.
      *
      * @param object $signup Parameter signup.
-     * @param \cm_info $cm Parameter cm.
-     * @param \context_module $context Parameter context.
+     * @param cm_info $cm Parameter cm.
+     * @param context_module $context Parameter context.
      * @param int $userid Parameter userid.
      * @return array Return value.
      */
-    public static function build(object $signup, \cm_info $cm, \context_module $context, int $userid): array {
+    public static function build(object $signup, cm_info $cm, context_module $context, int $userid): array {
         global $DB;
 
         $groups = $DB->get_records("signup_groups", ["signupid" => $signup->id], "sortorder ASC, id ASC");
@@ -60,12 +62,12 @@ class view_builder {
                 "groupid" => $group->id,
                 "status" => signup_manager::STATUS_WAITING,
             ]);
-            $remaining = max(0, (int) $group->capacity - $confirmed);
+            $remaining = max(0, (int)$group->capacity - $confirmed);
             $full = $remaining === 0;
-            $iscurrent = $membership && (int) $membership->groupid === (int) $group->id;
-            $currentwaiting = $iscurrent && (int) $membership->status === signup_manager::STATUS_WAITING;
+            $iscurrent = $membership && (int)$membership->groupid === (int)$group->id;
+            $currentwaiting = $iscurrent && (int)$membership->status === signup_manager::STATUS_WAITING;
             $waitposition = $currentwaiting
-                ? signup_manager::get_wait_position((int) $membership->id, (int) $group->id)
+                ? signup_manager::get_wait_position((int)$membership->id, (int)$group->id)
                 : 0;
             $leadername = "";
             if (!empty($group->leaderid)) {
@@ -76,16 +78,16 @@ class view_builder {
                 }
             }
 
-            $controller = signup_manager::get_group_controller((int) $group->id);
-            $canconfig = $iscurrent && (int) $membership->status === signup_manager::STATUS_CONFIRMED &&
+            $controller = signup_manager::get_group_controller((int)$group->id);
+            $canconfig = $iscurrent && (int)$membership->status === signup_manager::STATUS_CONFIRMED &&
                 $controller === $userid && (!empty($group->allowrename) || !empty($group->allowleader));
             $joinlabel = $full ? get_string("joinwaitlist", "mod_signup") : get_string("signupbutton", "mod_signup");
             $canjoin = $cansignup && $open && $canchange && !$iscurrent && (!$full || !empty($signup->waitlist));
 
             $items[] = [
-                "id" => (int) $group->id,
+                "id" => (int)$group->id,
                 "name" => format_string($group->name, true, ["context" => $context]),
-                "capacity" => (int) $group->capacity,
+                "capacity" => (int)$group->capacity,
                 "confirmed" => $confirmed,
                 "waiting" => $waiting,
                 "remaining" => $remaining,
@@ -119,7 +121,7 @@ class view_builder {
             "canleave" => ($membership && $open && !empty($signup->allowchanges) && $cansignup),
             "actionurl" => new moodle_url("/mod/signup/action.php"),
             "sesskey" => sesskey(),
-            "cmid" => (int) $cm->id,
+            "cmid" => (int)$cm->id,
             "canmanage" => $canmanage,
             "canreport" => $canreport,
             "hasteacherbuttons" => $canmanage || $canreport,

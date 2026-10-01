@@ -24,21 +24,25 @@
 
 namespace mod_signup\privacy;
 
+use context;
+use context_module;
 use core_privacy\local\metadata\collection;
 use core_privacy\local\request\approved_contextlist;
 use core_privacy\local\request\approved_userlist;
 use core_privacy\local\request\contextlist;
+use core_privacy\local\request\core_userlist_provider;
 use core_privacy\local\request\transform;
 use core_privacy\local\request\userlist;
 use core_privacy\local\request\writer;
+use mod_signup\signup_manager;
 
 /**
  * Class provider.
  */
 class provider implements
-        \core_privacy\local\metadata\provider,
-        \core_privacy\local\request\plugin\provider,
-        \core_privacy\local\request\core_userlist_provider {
+    \core_privacy\local\metadata\provider,
+    \core_privacy\local\request\plugin\provider,
+    core_userlist_provider {
 
     /**
      * Method get_metadata.
@@ -96,7 +100,7 @@ class provider implements
 
         $userid = $contextlist->get_user()->id;
         foreach ($contextlist->get_contexts() as $context) {
-            if (!$context instanceof \context_module) {
+            if (!$context instanceof context_module) {
                 continue;
             }
             $cm = get_coursemodule_from_id("signup", $context->instanceid);
@@ -110,10 +114,10 @@ class provider implements
             $member = $DB->get_record("signup_members", ["signupid" => $signup->id, "userid" => $userid]);
             if ($member) {
                 $group = $DB->get_record("signup_groups", ["id" => $member->groupid]);
-                writer::with_context($context)->export_data([], (object) [
+                writer::with_context($context)->export_data([], (object)[
                     "activity" => format_string($signup->name, true, ["context" => $context]),
                     "group" => $group ? format_string($group->name, true, ["context" => $context]) : "",
-                    "status" => (int) $member->status === \mod_signup\signup_manager::STATUS_CONFIRMED ?
+                    "status" => (int)$member->status === signup_manager::STATUS_CONFIRMED ?
                         get_string("confirmed", "mod_signup") : get_string("waiting", "mod_signup"),
                     "timecreated" => transform::datetime($member->timecreated),
                 ]);
@@ -124,13 +128,13 @@ class provider implements
     /**
      * Method delete_data_for_all_users_in_context.
      *
-     * @param \context $context Parameter context.
+     * @param context $context Parameter context.
      * @return void Return value.
      */
-    public static function delete_data_for_all_users_in_context(\context $context): void {
+    public static function delete_data_for_all_users_in_context(context $context): void {
         global $DB;
 
-        if (!$context instanceof \context_module) {
+        if (!$context instanceof context_module) {
             return;
         }
         $cm = get_coursemodule_from_id("signup", $context->instanceid);
@@ -152,7 +156,7 @@ class provider implements
 
         $userid = $contextlist->get_user()->id;
         foreach ($contextlist->get_contexts() as $context) {
-            if (!$context instanceof \context_module) {
+            if (!$context instanceof context_module) {
                 continue;
             }
             $cm = get_coursemodule_from_id("signup", $context->instanceid);
@@ -172,7 +176,7 @@ class provider implements
      */
     public static function get_users_in_context(userlist $userlist): void {
         $context = $userlist->get_context();
-        if (!$context instanceof \context_module) {
+        if (!$context instanceof context_module) {
             return;
         }
         $sql = "SELECT sm.userid
@@ -204,7 +208,7 @@ class provider implements
         global $DB;
 
         $context = $userlist->get_context();
-        if (!$context instanceof \context_module) {
+        if (!$context instanceof context_module) {
             return;
         }
         $cm = get_coursemodule_from_id("signup", $context->instanceid);

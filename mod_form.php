@@ -22,7 +22,7 @@
  * @license   http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
-defined('MOODLE_INTERNAL') || die();
+defined('MOODLE_INTERNAL') || die;
 
 require_once("{$CFG->dirroot}/course/moodleform_mod.php");
 
@@ -110,10 +110,10 @@ class mod_signup_mod_form extends moodleform_mod {
      */
     public function validation($data, $files): array {
         $errors = parent::validation($data, $files);
-        if (isset($data["groupcount"]) && ((int) $data["groupcount"] < 1 || (int) $data["groupcount"] > 200)) {
+        if (isset($data["groupcount"]) && ((int)$data["groupcount"] < 1 || (int)$data["groupcount"] > 200)) {
             $errors["groupcount"] = get_string("error");
         }
-        if (isset($data["defaultcapacity"]) && ((int) $data["defaultcapacity"] < 1 || (int) $data["defaultcapacity"] > 100000)) {
+        if (isset($data["defaultcapacity"]) && ((int)$data["defaultcapacity"] < 1 || (int)$data["defaultcapacity"] > 100000)) {
             $errors["defaultcapacity"] = get_string("error");
         }
         if (!empty($data["timeopen"]) && !empty($data["timeclose"]) && $data["timeclose"] <= $data["timeopen"]) {

@@ -22,6 +22,8 @@
  * @license   http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
+use core\output\notification;
+
 require_once(__DIR__ . "/../../config.php");
 
 $id = required_param("id", PARAM_INT);
@@ -39,7 +41,7 @@ $instances = get_all_instances_in_course("signup", $course);
 echo $OUTPUT->header();
 echo $OUTPUT->heading(get_string("modulenameplural", "mod_signup"));
 if (!$instances) {
-    echo $OUTPUT->notification(get_string("nothingtodisplay"), \core\output\notification::NOTIFY_INFO);
+    echo $OUTPUT->notification(get_string("nothingtodisplay"), notification::NOTIFY_INFO);
     echo $OUTPUT->footer();
     exit;
 }

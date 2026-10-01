@@ -47,7 +47,7 @@ class restore_signup_activity_structure_step extends restore_activity_structure_
     protected function process_signup($data): void {
         global $DB;
 
-        $data = (object) $data;
+        $data = (object)$data;
         $oldid = $data->id;
         $data->course = $this->get_courseid();
         $data->timeopen = $this->apply_date_offset($data->timeopen);
@@ -67,7 +67,7 @@ class restore_signup_activity_structure_step extends restore_activity_structure_
     protected function process_signup_group($data): void {
         global $DB;
 
-        $data = (object) $data;
+        $data = (object)$data;
         $oldid = $data->id;
         $data->signupid = $this->get_new_parentid("signup");
         $data->leaderid = empty($data->leaderid) ? 0 : $this->get_mappingid("user", $data->leaderid, 0);
@@ -86,7 +86,7 @@ class restore_signup_activity_structure_step extends restore_activity_structure_
     protected function process_signup_member($data): void {
         global $DB;
 
-        $data = (object) $data;
+        $data = (object)$data;
         $data->signupid = $this->get_new_parentid("signup");
         $data->groupid = $this->get_new_parentid("signup_group");
         $data->userid = $this->get_mappingid("user", $data->userid, 0);

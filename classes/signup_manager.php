@@ -24,6 +24,13 @@
 
 namespace mod_signup;
 
+use context_module;
+use core\lock\lock_config;
+use core_text;
+use mod_signup\event\signup_created;
+use mod_signup\event\signup_left;
+use moodle_exception;
+
 /**
  * Class signup_manager.
  */
@@ -82,13 +89,13 @@ class signup_manager {
         global $DB;
 
         if (!self::is_open($signup)) {
-            throw new \moodle_exception("signupclosed", "mod_signup");
+            throw new moodle_exception("signupclosed", "mod_signup");
         }
 
-        $lockfactory = \core\lock\lock_config::get_lock_factory("mod_signup_selection");
+        $lockfactory = lock_config::get_lock_factory("mod_signup_selection");
         $lock = $lockfactory->get_lock("signup:" . $signup->id, 10);
         if (!$lock) {
-            throw new \moodle_exception("locktimeout", "mod_signup");
+            throw new moodle_exception("locktimeout", "mod_signup");
         }
 
         try {
@@ -97,33 +104,33 @@ class signup_manager {
                 "signupid" => $signup->id,
             ], "*", MUST_EXIST);
             $existing = $DB->get_record("signup_members", ["signupid" => $signup->id, "userid" => $userid]);
-            if ($existing && (int) $existing->groupid === $groupid) {
-                return (int) $existing->status;
+            if ($existing && (int)$existing->groupid === $groupid) {
+                return (int)$existing->status;
             }
             if ($existing && empty($signup->allowchanges)) {
-                throw new \moodle_exception("cannotchange", "mod_signup");
+                throw new moodle_exception("cannotchange", "mod_signup");
             }
 
             $confirmed = $DB->count_records("signup_members", [
                 "groupid" => $groupid,
                 "status" => self::STATUS_CONFIRMED,
             ]);
-            $status = $confirmed < (int) $group->capacity ? self::STATUS_CONFIRMED : self::STATUS_WAITING;
+            $status = $confirmed < (int)$group->capacity ? self::STATUS_CONFIRMED : self::STATUS_WAITING;
             if ($status === self::STATUS_WAITING && empty($signup->waitlist)) {
-                throw new \moodle_exception("groupfull", "mod_signup");
+                throw new moodle_exception("groupfull", "mod_signup");
             }
 
             $transaction = $DB->start_delegated_transaction();
             $oldgroupid = 0;
             if ($existing) {
-                $oldgroupid = (int) $existing->groupid;
+                $oldgroupid = (int)$existing->groupid;
                 $DB->delete_records("signup_members", ["id" => $existing->id]);
                 self::clear_leader_if_needed($oldgroupid, $userid);
             }
 
             $now = time();
-            $memberid = $DB->insert_record("signup_members", (object) [
-                "signupid" => (int) $signup->id,
+            $memberid = $DB->insert_record("signup_members", (object)[
+                "signupid" => (int)$signup->id,
                 "groupid" => $groupid,
                 "userid" => $userid,
                 "status" => $status,
@@ -154,13 +161,13 @@ class signup_manager {
         global $DB;
 
         if (!self::is_open($signup)) {
-            throw new \moodle_exception("signupclosed", "mod_signup");
+            throw new moodle_exception("signupclosed", "mod_signup");
         }
 
-        $lockfactory = \core\lock\lock_config::get_lock_factory("mod_signup_selection");
+        $lockfactory = lock_config::get_lock_factory("mod_signup_selection");
         $lock = $lockfactory->get_lock("signup:" . $signup->id, 10);
         if (!$lock) {
-            throw new \moodle_exception("locktimeout", "mod_signup");
+            throw new moodle_exception("locktimeout", "mod_signup");
         }
 
         try {
@@ -169,13 +176,13 @@ class signup_manager {
                 return false;
             }
             if (empty($signup->allowchanges)) {
-                throw new \moodle_exception("cannotchange", "mod_signup");
+                throw new moodle_exception("cannotchange", "mod_signup");
             }
 
             $DB->delete_records("signup_members", ["id" => $member->id]);
-            self::clear_leader_if_needed((int) $member->groupid, $userid);
-            if ((int) $member->status === self::STATUS_CONFIRMED) {
-                self::promote_waiting((int) $member->groupid);
+            self::clear_leader_if_needed((int)$member->groupid, $userid);
+            if ((int)$member->status === self::STATUS_CONFIRMED) {
+                self::promote_waiting((int)$member->groupid);
             }
             self::trigger_left_event($signup, $member, $userid);
             return true;
@@ -198,7 +205,7 @@ class signup_manager {
             "groupid" => $groupid,
             "status" => self::STATUS_CONFIRMED,
         ]);
-        $available = max(0, (int) $group->capacity - $confirmed);
+        $available = max(0, (int)$group->capacity - $confirmed);
         if ($available === 0) {
             return 0;
         }
@@ -232,7 +239,7 @@ class signup_manager {
         global $DB;
 
         $member = $DB->get_record("signup_members", ["id" => $memberid, "groupid" => $groupid], "*", MUST_EXIST);
-        if ((int) $member->status !== self::STATUS_WAITING) {
+        if ((int)$member->status !== self::STATUS_WAITING) {
             return 0;
         }
         $sql = "SELECT COUNT(1)
@@ -260,7 +267,7 @@ class signup_manager {
 
         $group = $DB->get_record("signup_groups", ["id" => $groupid], "*", MUST_EXIST);
         if (!empty($group->leaderid)) {
-            return (int) $group->leaderid;
+            return (int)$group->leaderid;
         }
         $first = $DB->get_records(
             "signup_members",
@@ -271,7 +278,7 @@ class signup_manager {
             1
         );
         $first = $first ? reset($first) : false;
-        return $first ? (int) $first->userid : 0;
+        return $first ? (int)$first->userid : 0;
     }
 
     /**
@@ -286,27 +293,27 @@ class signup_manager {
     public static function save_team_settings(object $group, int $userid, string $name, int $leaderid): void {
         global $DB;
 
-        $controller = self::get_group_controller((int) $group->id);
+        $controller = self::get_group_controller((int)$group->id);
         if ($controller !== $userid) {
-            throw new \moodle_exception("teamsettingsnotallowed", "mod_signup");
+            throw new moodle_exception("teamsettingsnotallowed", "mod_signup");
         }
 
         if (!empty($group->allowrename)) {
             $name = trim($name);
             if ($name === "") {
-                throw new \moodle_exception("groupnameempty", "mod_signup");
+                throw new moodle_exception("groupnameempty", "mod_signup");
             }
-            $group->name = \core_text::substr(clean_param($name, PARAM_TEXT), 0, 255);
+            $group->name = core_text::substr(clean_param($name, PARAM_TEXT), 0, 255);
             $group->customname = 1;
         }
 
         if (!empty($group->allowleader)) {
             if ($leaderid > 0 && !$DB->record_exists("signup_members", [
-                "groupid" => $group->id,
-                "userid" => $leaderid,
-                "status" => self::STATUS_CONFIRMED,
-            ])) {
-                throw new \moodle_exception("invalidleader", "mod_signup");
+                    "groupid" => $group->id,
+                    "userid" => $leaderid,
+                    "status" => self::STATUS_CONFIRMED,
+                ])) {
+                throw new moodle_exception("invalidleader", "mod_signup");
             }
             $group->leaderid = $leaderid;
         }
@@ -327,37 +334,37 @@ class signup_manager {
      * @return void Return value.
      */
     public static function save_teacher_group(object $group, string $name, int $capacity, bool $allowrename,
-            bool $allowleader, int $leaderid): void {
+                                              bool   $allowleader, int $leaderid): void {
         global $DB;
 
-        $lockfactory = \core\lock\lock_config::get_lock_factory("mod_signup_selection");
+        $lockfactory = lock_config::get_lock_factory("mod_signup_selection");
         $lock = $lockfactory->get_lock("signup:" . $group->signupid, 10);
         if (!$lock) {
-            throw new \moodle_exception("locktimeout", "mod_signup");
+            throw new moodle_exception("locktimeout", "mod_signup");
         }
 
         try {
             $name = trim($name);
             if ($name === "") {
-                throw new \moodle_exception("groupnameempty", "mod_signup");
+                throw new moodle_exception("groupnameempty", "mod_signup");
             }
             $capacity = min(100000, max(1, $capacity));
             if ($leaderid > 0 && !$DB->record_exists("signup_members", [
-                "groupid" => $group->id,
-                "userid" => $leaderid,
-                "status" => self::STATUS_CONFIRMED,
-            ])) {
-                throw new \moodle_exception("invalidleader", "mod_signup");
+                    "groupid" => $group->id,
+                    "userid" => $leaderid,
+                    "status" => self::STATUS_CONFIRMED,
+                ])) {
+                throw new moodle_exception("invalidleader", "mod_signup");
             }
 
-            $group->name = \core_text::substr(clean_param($name, PARAM_TEXT), 0, 255);
+            $group->name = core_text::substr(clean_param($name, PARAM_TEXT), 0, 255);
             $group->capacity = $capacity;
-            $group->allowrename = (int) $allowrename;
-            $group->allowleader = (int) $allowleader;
+            $group->allowrename = (int)$allowrename;
+            $group->allowleader = (int)$allowleader;
             $group->leaderid = $allowleader ? $leaderid : 0;
             $group->timemodified = time();
             $DB->update_record("signup_groups", $group);
-            self::promote_waiting((int) $group->id);
+            self::promote_waiting((int)$group->id);
         } finally {
             $lock->release();
         }
@@ -374,7 +381,7 @@ class signup_manager {
         global $DB;
 
         $group = $DB->get_record("signup_groups", ["id" => $groupid]);
-        if ($group && (int) $group->leaderid === $userid) {
+        if ($group && (int)$group->leaderid === $userid) {
             $group->leaderid = 0;
             $group->timemodified = time();
             $DB->update_record("signup_groups", $group);
@@ -393,8 +400,8 @@ class signup_manager {
      */
     private static function trigger_created_event(object $signup, int $memberid, int $userid, int $groupid, int $status): void {
         $cm = get_coursemodule_from_instance("signup", $signup->id, $signup->course, false, MUST_EXIST);
-        $context = \context_module::instance($cm->id);
-        $event = \mod_signup\event\signup_created::create([
+        $context = context_module::instance($cm->id);
+        $event = signup_created::create([
             "objectid" => $memberid,
             "context" => $context,
             "userid" => $userid,
@@ -414,8 +421,8 @@ class signup_manager {
      */
     private static function trigger_left_event(object $signup, object $member, int $userid): void {
         $cm = get_coursemodule_from_instance("signup", $signup->id, $signup->course, false, MUST_EXIST);
-        $context = \context_module::instance($cm->id);
-        $event = \mod_signup\event\signup_left::create([
+        $context = context_module::instance($cm->id);
+        $event = signup_left::create([
             "objectid" => $member->id,
             "context" => $context,
             "userid" => $userid,

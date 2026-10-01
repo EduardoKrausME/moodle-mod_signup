@@ -24,14 +24,16 @@
 
 namespace mod_signup\form;
 
-defined('MOODLE_INTERNAL') || die();
+use moodleform;
+
+defined('MOODLE_INTERNAL') || die;
 
 require_once($CFG->libdir . "/formslib.php");
 
 /**
  * Class manage_groups_form.
  */
-class manage_groups_form extends \moodleform {
+class manage_groups_form extends moodleform {
     /**
      * Method definition.
      *
@@ -51,21 +53,21 @@ class manage_groups_form extends \moodleform {
 
             $mform->addElement("text", "capacity_{$group->id}", get_string("capacity", "mod_signup"), ["size" => 8]);
             $mform->setType("capacity_{$group->id}", PARAM_INT);
-            $mform->setDefault("capacity_{$group->id}", (int) $group->capacity);
+            $mform->setDefault("capacity_{$group->id}", (int)$group->capacity);
             $mform->addRule("capacity_{$group->id}", null, "required", null, "client");
             $mform->addRule("capacity_{$group->id}", null, "numeric", null, "client");
 
             $mform->addElement("advcheckbox", "allowrename_{$group->id}", get_string("allowrename", "mod_signup"));
-            $mform->setDefault("allowrename_{$group->id}", (int) $group->allowrename);
+            $mform->setDefault("allowrename_{$group->id}", (int)$group->allowrename);
             $mform->addElement("advcheckbox", "allowleader_{$group->id}", get_string("allowleader", "mod_signup"));
-            $mform->setDefault("allowleader_{$group->id}", (int) $group->allowleader);
+            $mform->setDefault("allowleader_{$group->id}", (int)$group->allowleader);
 
             $options = [0 => get_string("noleader", "mod_signup")];
             foreach ($membersbygroup[$group->id] ?? [] as $member) {
                 $options[$member->id] = fullname($member);
             }
             $mform->addElement("select", "leaderid_{$group->id}", get_string("leader", "mod_signup"), $options);
-            $mform->setDefault("leaderid_{$group->id}", (int) $group->leaderid);
+            $mform->setDefault("leaderid_{$group->id}", (int)$group->leaderid);
             $mform->hideIf("leaderid_{$group->id}", "allowleader_{$group->id}", "notchecked");
         }
 
@@ -84,7 +86,7 @@ class manage_groups_form extends \moodleform {
     public function validation($data, $files): array {
         $errors = parent::validation($data, $files);
         foreach ($this->_customdata["groups"] as $group) {
-            $capacity = (int) ($data["capacity_{$group->id}"] ?? 0);
+            $capacity = (int)($data["capacity_{$group->id}"] ?? 0);
             if ($capacity < 1 || $capacity > 100000) {
                 $errors["capacity_{$group->id}"] = get_string("invaliddata");
             }

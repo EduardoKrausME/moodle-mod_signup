@@ -22,6 +22,10 @@
  * @license   http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
+use core\output\notification;
+use mod_signup\form\manage_groups_form;
+use mod_signup\signup_manager;
+
 require_once(__DIR__ . "/../../config.php");
 
 $id = required_param("id", PARAM_INT);
@@ -42,11 +46,11 @@ foreach ($groups as $group) {
           ORDER BY u.lastname, u.firstname";
     $membersbygroup[$group->id] = $DB->get_records_sql($sql, [
         "groupid" => $group->id,
-        "status" => \mod_signup\signup_manager::STATUS_CONFIRMED,
+        "status" => signup_manager::STATUS_CONFIRMED,
     ]);
 }
 
-$form = new \mod_signup\form\manage_groups_form(null, [
+$form = new manage_groups_form(null, [
     "groups" => $groups,
     "membersbygroup" => $membersbygroup,
     "cmid" => $cm->id,
@@ -57,16 +61,16 @@ if ($form->is_cancelled()) {
 }
 if ($data = $form->get_data()) {
     foreach ($groups as $group) {
-        \mod_signup\signup_manager::save_teacher_group(
+        signup_manager::save_teacher_group(
             $group,
             $data->{"groupname_{$group->id}"},
-            (int) $data->{"capacity_{$group->id}"},
+            (int)$data->{"capacity_{$group->id}"},
             !empty($data->{"allowrename_{$group->id}"}),
             !empty($data->{"allowleader_{$group->id}"}),
-            (int) ($data->{"leaderid_{$group->id}"} ?? 0)
+            (int)($data->{"leaderid_{$group->id}"} ?? 0)
         );
     }
-    redirect($returnurl, get_string("groupssaved", "mod_signup"), null, \core\output\notification::NOTIFY_SUCCESS);
+    redirect($returnurl, get_string("groupssaved", "mod_signup"), null, notification::NOTIFY_SUCCESS);
 }
 
 $PAGE->set_url(new moodle_url("/mod/signup/manage.php", ["id" => $cm->id]));

@@ -1,6 +1,7 @@
 # mod_signup - Activity signup
 
-A small Moodle activity for allocating students to internal activity groups with capacity control and optional waiting lists.
+A small Moodle activity for allocating students to internal activity groups with capacity control and optional waiting
+lists.
 
 ## Main features
 

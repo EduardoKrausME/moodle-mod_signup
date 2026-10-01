@@ -22,6 +22,8 @@
  * @license   http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
+use mod_signup\signup_manager;
+
 require_once(__DIR__ . "/../../config.php");
 require_once($CFG->libdir . "/tablelib.php");
 
@@ -56,7 +58,7 @@ if ($download === "csv") {
         get_string("date", "mod_signup"),
     ]);
     foreach ($rows as $row) {
-        $status = (int) $row->status === \mod_signup\signup_manager::STATUS_CONFIRMED ?
+        $status = (int)$row->status === signup_manager::STATUS_CONFIRMED ?
             get_string("confirmed", "mod_signup") : get_string("waiting", "mod_signup");
         $csv->add_data([
             fullname($row),
@@ -97,7 +99,7 @@ $table->set_attribute("class", "generaltable generalbox");
 $table->setup();
 
 foreach ($rows as $row) {
-    $status = (int) $row->status === \mod_signup\signup_manager::STATUS_CONFIRMED ?
+    $status = (int)$row->status === signup_manager::STATUS_CONFIRMED ?
         get_string("confirmed", "mod_signup") : get_string("waiting", "mod_signup");
     $table->add_data([
         fullname($row),

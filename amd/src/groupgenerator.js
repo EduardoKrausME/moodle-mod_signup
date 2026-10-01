@@ -21,7 +21,7 @@
  * @license   http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
-define(["jquery"], function($) {
+define(["jquery"], function ($) {
     function alphaLabel(index) {
         var label = "";
         var number = index + 1;
@@ -59,9 +59,9 @@ define(["jquery"], function($) {
     }
 
     return {
-        init: function(configs) {
+        init: function (configs) {
             var config = configs[0] || configs;
-            $(config.button).on("click", function(event) {
+            $(config.button).on("click", function (event) {
                 event.preventDefault();
                 render(config);
             });

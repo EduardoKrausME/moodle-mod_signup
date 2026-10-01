@@ -22,6 +22,8 @@
  * @license   http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
+use mod_signup\instance_manager;
+
 /**
  * signup_supports
  *
@@ -52,7 +54,7 @@ function signup_supports(string $feature): bool|string|null {
  * @return int
  */
 function signup_add_instance($data, $mform = null): int {
-    return \mod_signup\instance_manager::add($data);
+    return instance_manager::add($data);
 }
 
 /**
@@ -63,7 +65,7 @@ function signup_add_instance($data, $mform = null): int {
  * @return bool
  */
 function signup_update_instance($data, $mform = null): bool {
-    return \mod_signup\instance_manager::update($data);
+    return instance_manager::update($data);
 }
 
 /**
@@ -73,5 +75,5 @@ function signup_update_instance($data, $mform = null): bool {
  * @return bool
  */
 function signup_delete_instance($id): bool {
-    return \mod_signup\instance_manager::delete((int) $id);
+    return instance_manager::delete((int)$id);
 }

@@ -22,6 +22,9 @@
  * @license   http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
+use mod_signup\event\course_module_viewed;
+use mod_signup\view_builder;
+
 require_once(__DIR__ . "/../../config.php");
 
 $id = required_param("id", PARAM_INT);
@@ -38,7 +41,7 @@ $PAGE->set_title(format_string($signup->name));
 $PAGE->set_heading(format_string($course->fullname));
 $PAGE->set_context($context);
 
-$event = \mod_signup\event\course_module_viewed::create([
+$event = course_module_viewed::create([
     "objectid" => $signup->id,
     "context" => $context,
 ]);
@@ -49,11 +52,11 @@ $event->trigger();
 $completion = new completion_info($course);
 $completion->set_module_viewed($cm);
 
-$data = \mod_signup\view_builder::build($signup, cm_info::create($cm), $context, $USER->id);
+$data = view_builder::build($signup, cm_info::create($cm), $context, $USER->id);
 
 echo $OUTPUT->header();
 echo $OUTPUT->heading(format_string($signup->name));
-if (trim((string) $signup->intro) !== "") {
+if (trim((string)$signup->intro) !== "") {
     echo $OUTPUT->box(format_module_intro("signup", $signup, $cm->id), "generalbox mod_introbox", "signupintro");
 }
 echo $OUTPUT->render_from_template("mod_signup/group_cards", $data);

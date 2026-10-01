@@ -24,10 +24,13 @@
 
 namespace mod_signup\event;
 
+use core\event\base;
+use moodle_url;
+
 /**
  * Class signup_created.
  */
-class signup_created extends \core\event\base {
+class signup_created extends base {
     /**
      * Method init.
      *
@@ -60,9 +63,9 @@ class signup_created extends \core\event\base {
     /**
      * Method get_url.
      *
-     * @return \moodle_url Return value.
+     * @return moodle_url Return value.
      */
-    public function get_url(): \moodle_url {
-        return new \moodle_url("/mod/signup/view.php", ["id" => $this->contextinstanceid]);
+    public function get_url(): moodle_url {
+        return new moodle_url("/mod/signup/view.php", ["id" => $this->contextinstanceid]);
     }
 }
