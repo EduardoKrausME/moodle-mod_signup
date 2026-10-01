@@ -1,24 +1,22 @@
 # mod_signup - Activity signup
 
-A small Moodle activity for allocating students to internal activity groups with capacity control and optional waiting
-lists.
+A Moodle activity for allocating students to internal activity groups with capacity control and optional waiting lists.
 
-## Main features
+## How it works
 
-- Automatically creates a chosen number of groups when the activity is created.
-- Sets the same initial capacity for all generated groups.
-- Optional waiting list with automatic FIFO promotion when a seat becomes available.
-- Students can change or cancel their signup when the teacher allows it.
-- Per-group custom names.
-- Per-group optional leader selection.
-- The first confirmed member controls team settings until a leader is selected; then the leader controls them.
-- Teacher management page for group name, capacity, rename permission, leader permission, and leader assignment.
-- Teacher report with CSV export.
-- Moodle Lock API protection against concurrent overbooking.
-- Privacy API and backup/restore support.
+When the activity is created, it can generate a chosen number of groups with an initial capacity. Students select an
+available group and, when a group is full, can enter its waiting list if that option is enabled.
 
-## Installation
+When a confirmed participant leaves, the first learner in the waiting list is promoted automatically. Teachers can also
+decide whether students may change or cancel their signup.
 
-Copy the `signup` directory to `mod/signup` and visit Site administration > Notifications.
+## Group management
 
-Requires Moodle 4.5 or later.
+Groups can have custom names, individual capacities and an optional leader. The first confirmed member controls team
+settings until a leader is selected; after that, the designated leader controls those settings.
+
+Teachers have a management page for group names, capacity, rename permission, leader permission and leader assignment,
+plus a report that can be exported to CSV.
+
+Concurrent signups are protected by Moodle's Lock API to prevent overbooking. The activity also integrates with backup,
+restore and Moodle's Privacy API.
