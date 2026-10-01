@@ -334,7 +334,7 @@ class signup_manager {
      * @return void Return value.
      */
     public static function save_teacher_group(object $group, string $name, int $capacity, bool $allowrename,
-                                              bool   $allowleader, int $leaderid): void {
+                                              bool $allowleader, int $leaderid): void {
         global $DB;
 
         $lockfactory = lock_config::get_lock_factory("mod_signup_selection");
