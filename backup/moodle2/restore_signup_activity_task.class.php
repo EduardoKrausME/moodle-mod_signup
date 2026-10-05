@@ -64,4 +64,13 @@ class restore_signup_activity_task extends restore_activity_task {
     public static function define_decode_rules(): array {
         return [new restore_decode_rule("SIGNUPVIEWBYID", '/mod/signup/view.php?id=$1', "course_module")];
     }
+
+    /**
+     * Define the restore log rules for this activity.
+     *
+     * @return array Restore log rules.
+     */
+    public static function define_restore_log_rules(): array {
+        return [];
+    }
 }
