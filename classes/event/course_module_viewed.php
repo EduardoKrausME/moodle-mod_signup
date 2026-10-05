@@ -46,4 +46,13 @@ class course_module_viewed extends \core\event\course_module_viewed {
     public static function get_name(): string {
         return get_string("eventsignupviewed", "mod_signup");
     }
+
+    /**
+     * Returns the mapping used to restore the event object id.
+     *
+     * @return array Mapping information.
+     */
+    public static function get_objectid_mapping(): array {
+        return ["db" => "signup", "restore" => "signup"];
+    }
 }

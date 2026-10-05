@@ -68,4 +68,27 @@ class signup_created extends base {
     public function get_url(): moodle_url {
         return new moodle_url("/mod/signup/view.php", ["id" => $this->contextinstanceid]);
     }
+
+    /**
+     * Returns the mapping used to restore the event object id.
+     *
+     * Signup member records are not mapped by the restore step, so the object id
+     * cannot be translated to a restored record.
+     *
+     * @return array Mapping information.
+     */
+    public static function get_objectid_mapping(): array {
+        return ["db" => "signup_members", "restore" => base::NOT_MAPPED];
+    }
+
+    /**
+     * Returns mappings for ids stored in the event other data.
+     *
+     * @return array Mapping information.
+     */
+    public static function get_other_mapping(): array {
+        return [
+            "groupid" => ["db" => "signup_groups", "restore" => "signup_group"],
+        ];
+    }
 }

@@ -36,37 +36,47 @@ require_course_login($course, false, $cm);
 $context = context_module::instance($cm->id);
 require_capability("mod/signup:viewreport", $context);
 
+$userfieldsapi = \core_user\fields::for_identity($context)->with_name();
+$userfieldssql = $userfieldsapi->get_sql("u", true, "", "", false);
+$identityfields = $userfieldsapi->get_required_fields([\core_user\fields::PURPOSE_IDENTITY]);
+
 $sql = "SELECT sm.id, sm.userid, sm.groupid, sm.status, sm.timecreated,
-               sg.name AS groupname,
-               u.firstname, u.lastname, u.firstnamephonetic, u.lastnamephonetic, u.middlename, u.alternatename, u.email
+               sg.name AS groupname, {$userfieldssql->selects}
           FROM {signup_members} sm
           JOIN {signup_groups} sg ON sg.id = sm.groupid
           JOIN {user} u ON u.id = sm.userid
+               {$userfieldssql->joins}
          WHERE sm.signupid = :signupid
       ORDER BY sg.sortorder ASC, sm.status DESC, sm.timecreated ASC, sm.id ASC";
-$rows = $DB->get_records_sql($sql, ["signupid" => $signup->id]);
+$params = array_merge(["signupid" => $signup->id], $userfieldssql->params);
+$rows = $DB->get_records_sql($sql, $params);
 
 if ($download === "csv") {
     require_once($CFG->libdir . "/csvlib.class.php");
     $csv = new csv_export_writer();
     $csv->set_filename(clean_filename($signup->name . "-signup"));
-    $csv->add_data([
-        get_string("fullname"),
-        get_string("email"),
-        get_string("group", "mod_signup"),
-        get_string("status", "mod_signup"),
-        get_string("date", "mod_signup"),
-    ]);
+
+    $headers = [get_string("fullname")];
+    foreach ($identityfields as $field) {
+        $headers[] = \core_user\fields::get_display_name($field);
+    }
+    $headers[] = get_string("group", "mod_signup");
+    $headers[] = get_string("status", "mod_signup");
+    $headers[] = get_string("date", "mod_signup");
+    $csv->add_data($headers);
+
     foreach ($rows as $row) {
         $status = (int)$row->status === signup_manager::STATUS_CONFIRMED ?
             get_string("confirmed", "mod_signup") : get_string("waiting", "mod_signup");
-        $csv->add_data([
-            fullname($row),
-            $row->email,
-            $row->groupname,
-            $status,
-            userdate($row->timecreated),
-        ]);
+
+        $data = [fullname($row)];
+        foreach ($identityfields as $field) {
+            $data[] = (string)($row->{$field} ?? "");
+        }
+        $data[] = $row->groupname;
+        $data[] = $status;
+        $data[] = userdate($row->timecreated);
+        $csv->add_data($data);
     }
     $csv->download_file();
     exit;
@@ -85,15 +95,22 @@ echo html_writer::link(
     ["class" => "btn btn-secondary mb-3"]
 );
 
-$table = new flexible_table("mod-signup-report-{$cm->id}");
-$table->define_columns(["name", "email", "group", "status", "date"]);
-$table->define_headers([
-    get_string("fullname"),
-    get_string("email"),
+$columns = ["name"];
+$headers = [get_string("fullname")];
+foreach ($identityfields as $index => $field) {
+    $columns[] = "identity{$index}";
+    $headers[] = \core_user\fields::get_display_name($field);
+}
+$columns = array_merge($columns, ["group", "status", "date"]);
+$headers = array_merge($headers, [
     get_string("group", "mod_signup"),
     get_string("status", "mod_signup"),
     get_string("date", "mod_signup"),
 ]);
+
+$table = new flexible_table("mod-signup-report-{$cm->id}");
+$table->define_columns($columns);
+$table->define_headers($headers);
 $table->define_baseurl($PAGE->url);
 $table->set_attribute("class", "generaltable generalbox");
 $table->setup();
@@ -101,13 +118,15 @@ $table->setup();
 foreach ($rows as $row) {
     $status = (int)$row->status === signup_manager::STATUS_CONFIRMED ?
         get_string("confirmed", "mod_signup") : get_string("waiting", "mod_signup");
-    $table->add_data([
-        fullname($row),
-        s($row->email),
-        format_string($row->groupname, true, ["context" => $context]),
-        $status,
-        userdate($row->timecreated),
-    ]);
+
+    $data = [fullname($row)];
+    foreach ($identityfields as $field) {
+        $data[] = s((string)($row->{$field} ?? ""));
+    }
+    $data[] = format_string($row->groupname, true, ["context" => $context]);
+    $data[] = $status;
+    $data[] = userdate($row->timecreated);
+    $table->add_data($data);
 }
 $table->finish_output();
 echo $OUTPUT->footer();
