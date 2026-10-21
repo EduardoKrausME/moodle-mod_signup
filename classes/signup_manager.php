@@ -26,7 +26,6 @@ namespace mod_signup;
 
 use context_module;
 use core\lock\lock_config;
-use core_text;
 use mod_signup\event\signup_created;
 use mod_signup\event\signup_left;
 use moodle_exception;
@@ -303,7 +302,7 @@ class signup_manager {
             if ($name === "") {
                 throw new moodle_exception("groupnameempty", "mod_signup");
             }
-            $group->name = core_text::substr(clean_param($name, PARAM_TEXT), 0, 255);
+            $group->name = substr(clean_param($name, PARAM_TEXT), 0, 255);
             $group->customname = 1;
         }
 
@@ -357,7 +356,7 @@ class signup_manager {
                 throw new moodle_exception("invalidleader", "mod_signup");
             }
 
-            $group->name = core_text::substr(clean_param($name, PARAM_TEXT), 0, 255);
+            $group->name = substr(clean_param($name, PARAM_TEXT), 0, 255);
             $group->capacity = $capacity;
             $group->allowrename = (int)$allowrename;
             $group->allowleader = (int)$allowleader;
